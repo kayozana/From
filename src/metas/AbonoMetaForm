@@ -1,0 +1,55 @@
+<script>
+  export let meta;
+  export let onAbono = () => {}; // callback opcional
+
+  let monto = '';
+
+  function abonar() {
+    const valor = Number(monto);
+
+    if (!valor || valor <= 0) {
+      alert('Ingresa un monto válido (> 0)');
+      return;
+    }
+
+    // actualizamos el objeto meta (en un proyecto real usarías store o API)
+    meta.ahorrado = Number(meta.ahorrado) + valor;
+
+    // opcional: trigger de callback para que el padre pueda reaccionar
+    onAbono(meta, valor);
+
+    monto = '';
+  }
+</script>
+
+<div class="form-abono">
+  <input
+    type="number"
+    min="0"
+    bind:value={monto}
+    placeholder="Monto a abonar"
+  />
+  <button on:click={abonar}>Abonar</button>
+</div>
+
+<style>
+  .form-abono {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  input {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  button {
+    padding: 6px 12px;
+    border: none;
+    background: #1976d2;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+</style>
