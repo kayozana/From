@@ -1,6 +1,5 @@
 <script>
 // @ts-nocheck
-
   import * as stores from '../stores.js';
   const { movimientos } = stores;
   import { get } from 'svelte/store';
