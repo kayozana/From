@@ -1,9 +1,13 @@
 <script>
-  // Recibimos el porcentaje desde el componente padre
-  export let porcentaje = 0;
+  // Acepta ambos nombres de prop: `porcentaje` (español) y `progress` (inglés)
+  export let porcentaje = undefined;
+  export let progress = undefined;
+
+  // Usar `progress` si está definido, si no `porcentaje`, si no 0
+  $: used = progress ?? porcentaje ?? 0;
 
   // Aseguramos que el porcentaje sea un número válido entre 0 y 100
-  $: pct = Math.max(0, Math.min(100, Number(porcentaje) || 0));
+  $: pct = Math.max(0, Math.min(100, Number(used) || 0));
 </script>
 
 <div class="barra">

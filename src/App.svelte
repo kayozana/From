@@ -1,47 +1,86 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  import { routes, navigate } from './router.js';
+  import { onMount, onDestroy } from 'svelte';
+
+  let currentRoute = '/';
+
+  const normalize = (p) => (p ? p.replace(/\/+$/, '') : '/') || '/';
+
+  const onPopState = () => {
+    currentRoute = normalize(window.location.pathname);
+  };
+
+  onMount(() => {
+    window.addEventListener('popstate', onPopState);
+    currentRoute = normalize(window.location.pathname);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener('popstate', onPopState);
+  });
 </script>
 
-<main>
-  <div>
-    <a href="https://vite.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
-</main>
-
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
+  .app-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background: #f5f7fa;
+    min-height: 100vh;
   }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
+
+  nav {
+    display: flex;
+    gap: 15px;
+    background: #4f46e5; /* Azul intenso */
+    padding: 15px 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
+
+  button {
+    padding: 8px 16px;
+    background: #6366f1; /* Azul más claro */
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
   }
-  .read-the-docs {
-    color: #888;
+
+  button:hover {
+    background: #818cf8;
+  }
+
+  main {
+    padding: 20px;
+  }
+
+  h2 {
+    color: #374151;
+  }
+
+  .page {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
   }
 </style>
+
+<div class="app-container">
+  <nav>
+    <button on:click={() => navigate('/')}>Inicio</button>
+    <button on:click={() => navigate('/dashboard')}>Dashboard</button>
+    <button on:click={() => navigate('/nuevo-movimiento')}>Nuevo Movimiento</button>
+  </nav>
+
+  <main>
+    {#if routes[currentRoute]}
+      <div class="page">
+        <svelte:component this={routes[currentRoute]} />
+      </div>
+    {:else}
+      <h2>Página no encontrada</h2>
+    {/if}
+  </main>
+</div>
