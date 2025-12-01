@@ -19,14 +19,14 @@
   .barra {
     width: 100%;
     height: 12px;
-    background: #eee;
+    background: color-mix(in srgb, var(--muted) 18%, transparent);
     border-radius: 8px;
     overflow: hidden;
   }
 
   .progreso {
     height: 100%;
-    background: linear-gradient(90deg, #4caf50, #66bb6a);
+    background: linear-gradient(90deg, var(--progress-start), var(--progress-end));
     border-radius: 8px 0 0 8px;
     transition: width 0.3s ease;
   }

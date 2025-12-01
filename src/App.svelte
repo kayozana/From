@@ -1,4 +1,6 @@
 <script>
+// @ts-nocheck
+
   import { routes, navigate } from './router.js';
   import { onMount, onDestroy } from 'svelte';
 
@@ -24,31 +26,34 @@
   .app-container {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
-    background: #f5f7fa;
+    background: var(--bg);
+    color: var(--text);
     min-height: 100vh;
   }
 
   nav {
     display: flex;
     gap: 15px;
-    background: #4f46e5; /* Azul intenso */
+    background: var(--nav-bg);
+    color: var(--nav-text);
     padding: 15px 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
   }
 
   button {
     padding: 8px 16px;
-    background: #6366f1; /* Azul más claro */
+    background: var(--button-bg);
     border: none;
     border-radius: 5px;
-    color: white;
+    color: var(--button-text);
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.08s;
   }
 
   button:hover {
-    background: #818cf8;
+    background: color-mix(in srgb, var(--button-bg) 75%, var(--accent));
+    transform: translateY(-1px);
   }
 
   main {
@@ -56,14 +61,15 @@
   }
 
   h2 {
-    color: #374151;
+    color: var(--text);
   }
 
   .page {
-    background: white;
+    background: var(--card);
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+    color: var(--text);
   }
 </style>
 

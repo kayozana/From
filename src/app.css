@@ -4,8 +4,20 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Color variables used across components */
+  --bg: #121212;
+  --text: rgba(255, 255, 255, 0.92);
+  --card: #1f1f1f;
+  --muted: #9ca3af;
+  --nav-bg: #111827;
+  --nav-text: #f9fafb;
+  --button-bg: #374151;
+  --button-text: #ffffff;
+  --accent: #6366f1;
+  --progress-start: #4caf50;
+  --progress-end: #66bb6a;
+  background-color: var(--bg);
+  color: var(--text);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -67,8 +79,17 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --bg: #ffffff;
+    --text: #0f172a;
+    --card: #ffffff;
+    --muted: #6b7280;
+    --nav-bg: #4f46e5;
+    --nav-text: #ffffff;
+    --button-bg: #f3f4f6;
+    --button-text: #111827;
+    --accent: #6366f1;
+    --progress-start: #4caf50;
+    --progress-end: #66bb6a;
   }
   a:hover {
     color: #747bff;

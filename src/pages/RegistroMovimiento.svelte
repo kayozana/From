@@ -1,7 +1,8 @@
 <script>
 // @ts-nocheck
 
-  import { movimientos } from '../stores.js';
+  import * as stores from '../stores.js';
+  const { movimientos } = stores;
   import { get } from 'svelte/store';
 
   let descripcion = '';
@@ -25,11 +26,20 @@
 </script>
 
 <style>
-  h2 { color: #4f46e5; }
+  h2 { color: var(--text); }
   form { display: flex; flex-direction: column; gap: 10px; max-width: 400px; }
-  input, select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
-  button { padding: 10px; background: #6366f1; color: white; border: none; border-radius: 5px; cursor: pointer; }
-  button:hover { background: #818cf8; }
+  form > div { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  label { color: var(--muted); font-size: 0.95rem; }
+  input, select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+    background: color-mix(in srgb, var(--card) 96%, black 2%);
+    color: var(--text);
+  }
+  input::placeholder { color: color-mix(in srgb, var(--muted) 55%, transparent); }
+  button { padding: 10px; background: var(--accent); color: var(--button-text); border: none; border-radius: 5px; cursor: pointer; }
+  button:hover { background: color-mix(in srgb, var(--accent) 75%, black 10%); }
 </style>
 
 <h2>Registrar Movimiento</h2>
