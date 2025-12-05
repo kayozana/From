@@ -1,3 +1,4 @@
+import Inicio from './pages/Inicio.svelte';
 import Dashboard from './pages/Dashboard.svelte';
 import RegistroMovimiento from './pages/RegistroMovimiento.svelte';
 
@@ -15,7 +16,7 @@ const normalize = (p) => {
 };
 
 const rawRoutes = {
-  '/': Dashboard,
+  '/': Inicio,
   '/dashboard': Dashboard,
   '/nuevo-movimiento': RegistroMovimiento
 };
