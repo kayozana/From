@@ -1,13 +1,9 @@
 <script>
-  // Acepta ambos nombres de prop: `porcentaje` (español) y `progress` (inglés)
-  export let porcentaje = undefined;
-  export let progress = undefined;
-
-  // Usar `progress` si está definido, si no `porcentaje`, si no 0
-  $: used = progress ?? porcentaje ?? 0;
+  // Recibimos el porcentaje desde el componente padre
+  export let porcentaje = 0;
 
   // Aseguramos que el porcentaje sea un número válido entre 0 y 100
-  $: pct = Math.max(0, Math.min(100, Number(used) || 0));
+  $: pct = Math.max(0, Math.min(100, Number(porcentaje) || 0));
 </script>
 
 <div class="barra">
@@ -19,14 +15,14 @@
   .barra {
     width: 100%;
     height: 12px;
-    background: color-mix(in srgb, var(--muted) 18%, transparent);
+    background: #eee;
     border-radius: 8px;
     overflow: hidden;
   }
 
   .progreso {
     height: 100%;
-    background: linear-gradient(90deg, var(--progress-start), var(--progress-end));
+    background: linear-gradient(90deg, #4caf50, #66bb6a);
     border-radius: 8px 0 0 8px;
     transition: width 0.3s ease;
   }
