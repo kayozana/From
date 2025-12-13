@@ -1,147 +1,274 @@
 <script>
-// @ts-nocheck
-import PageWrapper from '../components/PageWrapper.svelte';
-import ProgressBar from '../metas/ProgressBar.svelte';
-import { movimientos, metas } from '../stores.js';
-import { derived } from 'svelte/store';
+  import { onMount } from 'svelte';
+  import { Chart, registerables } from 'chart.js';
 
-// Totales
-const totalGastos = derived(movimientos, $movimientos =>
-  $movimientos.filter(m => m.tipo === 'gasto').reduce((a,b) => a + Number(b.monto), 0)
-);
+  Chart.register(...registerables);
 
-const totalIngresos = derived(movimientos, $movimientos =>
-  $movimientos.filter(m => m.tipo === 'ingreso').reduce((a,b) => a + Number(b.monto), 0)
-);
+  // Datos mock (después vendrán de la API)
+  let saldoActual = 1450000;
+  let totalIngresos = 2500000;
+  let totalGastos = 1050000;
+  let cambioMensual = 12;
 
-const balance = derived([totalGastos, totalIngresos], ([$g, $i]) => $i - $g);
+  let chartGastos;
+  let chartBalance;
 
-// Estadísticas por categoría/tipo
-const gastosPorTipo = derived(movimientos, $movimientos => {
-  const grupos = {};
-  $movimientos.filter(m => m.tipo === 'gasto').forEach(m => {
-    grupos[m.descripcion] = (grupos[m.descripcion] || 0) + Number(m.monto);
+  onMount(() => {
+    // Gráfico de pastel - Gastos por categoría
+    const ctxGastos = document.getElementById('chartGastos');
+    if (ctxGastos && ctxGastos instanceof HTMLCanvasElement) {
+      chartGastos = new Chart(ctxGastos, {
+        type: 'doughnut',
+        data: {
+          labels: ['Alimentación', 'Transporte', 'Entretenimiento', 'Salud', 'Otros'],
+          datasets: [{
+            data: [450000, 300000, 150000, 100000, 50000],
+            backgroundColor: [
+              '#3b82f6',
+              '#8b5cf6',
+              '#ec4899',
+              '#f59e0b',
+              '#64748b'
+            ],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                font: { size: 12 },
+                color: '#475569'
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.label + ': $' + context.parsed.toLocaleString();
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Gráfico de barras - Balance mensual
+    const ctxBalance = document.getElementById('chartBalance');
+    if (ctxBalance && ctxBalance instanceof HTMLCanvasElement) {
+      chartBalance = new Chart(ctxBalance, {
+        type: 'bar',
+        data: {
+          labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+          datasets: [
+            {
+              label: 'Ingresos',
+              data: [2000000, 2200000, 2500000, 2300000, 2400000, 2500000],
+              backgroundColor: '#10b981',
+              borderRadius: 8
+            },
+            {
+              label: 'Gastos',
+              data: [1500000, 1600000, 1050000, 1800000, 1700000, 1050000],
+              backgroundColor: '#ef4444',
+              borderRadius: 8
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                padding: 15,
+                font: { size: 12, weight: '600' },
+                color: '#475569',
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return '$' + (value / 1000) + 'k';
+                },
+                color: '#64748b'
+              },
+              grid: {
+                color: '#e2e8f0'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#64748b'
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (chartGastos) chartGastos.destroy();
+      if (chartBalance) chartBalance.destroy();
+    };
   });
-  return Object.entries(grupos).sort((a, b) => b[1] - a[1]).slice(0, 5);
-});
-
-// Progreso de metas
-const metasProgress = derived(metas, $metas =>
-  $metas.map(m => ({ ...m, pct: Math.min((m.ahorrado / m.objetivo) * 100, 100) }))
-);
-
-const totalMetasAhorrado = derived(metas, $metas =>
-  $metas.reduce((a, b) => a + Number(b.ahorrado), 0)
-);
-
-const totalMetasObjetivo = derived(metas, $metas =>
-  $metas.reduce((a, b) => a + Number(b.objetivo), 0)
-);
-
-const maxGasto = derived(gastosPorTipo, $gastosPorTipo => $gastosPorTipo[0]?.[1] ?? 0);
 </script>
 
 <style>
-  .dashboard { display: flex; flex-direction: column; gap: 20px; }
-  .card { padding: 18px; border-radius: 10px; background: var(--card); box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
-  .card h3 { margin: 0 0 14px 0; color: var(--text); }
-  .card p { margin: 6px 0; }
-  .empty { color: var(--muted); font-size: 0.9rem; margin: 0; }
-  
-  /* Overview */
-  .overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
-  .overview-item { padding: 14px; border-radius: 8px; background: color-mix(in srgb, var(--card) 85%, black 3%); border-left: 4px solid var(--accent); }
-  .overview-item.income { border-left-color: var(--progress-start); }
-  .overview-item.expense { border-left-color: #ef4444; }
-  .overview-item.positive { border-left-color: var(--progress-start); }
-  .overview-item.negative { border-left-color: #ef4444; }
-  .overview-item .label { color: var(--muted); font-size: 0.85rem; margin-bottom: 6px; }
-  .overview-item .amount { font-size: 1.3rem; font-weight: 700; color: var(--text); }
+  h1 {
+    font-size: 2rem;
+    color: #0f172a;
+    margin-bottom: 32px;
+  }
 
-  /* Chart */
-  .chart { display: flex; flex-direction: column; gap: 12px; }
-  .chart-item { display: grid; grid-template-columns: 80px 1fr 60px; gap: 12px; align-items: center; }
-  .chart-item .label { font-size: 0.9rem; color: var(--muted); }
-  .bar-container { height: 20px; background: color-mix(in srgb, var(--muted) 12%, transparent); border-radius: 4px; overflow: hidden; }
-  .bar { height: 100%; background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, transparent)); }
-  .chart-item .value { text-align: right; font-weight: 600; color: var(--text); font-size: 0.9rem; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
 
-  /* Metas */
-  .metas { display: flex; flex-direction: column; gap: 12px; }
-  .meta { padding: 12px; background: color-mix(in srgb, var(--card) 85%, black 3%); border-radius: 8px; }
-  .meta-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .meta-header strong { color: var(--text); }
-  .pct { background: var(--accent); color: var(--button-text); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
-  .meta-footer { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85rem; color: var(--muted); }
-  .meta-footer .saved { font-weight: 600; color: var(--progress-start); }
-  .meta-summary { margin-top: 16px; padding: 12px; background: color-mix(in srgb, var(--muted) 8%, transparent); border-radius: 8px; }
-  .meta-summary p { margin: 6px 0; font-size: 0.95rem; }
-  .meta-summary strong { color: var(--accent); }
+  .stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 28px;
+    border-radius: 16px;
+    color: white;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    transition: transform 0.2s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .stat-card.green {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+  }
+
+  .stat-card.red {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+  }
+
+  .stat-label {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .stat-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .stat-change {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+  }
+
+  .chart-card {
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .chart-card h3 {
+    color: #0f172a;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .chart-container {
+    position: relative;
+    height: 300px;
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .charts-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+    }
+  }
 </style>
 
-<PageWrapper title="Dashboard — Análisis Detallado">
-  <div class="dashboard">
-    <div class="card overview">
-      <h3>📊 Estado Financiero</h3>
-      <div class="overview-grid">
-        <div class="overview-item income">
-          <div class="label">Ingresos Totales</div>
-          <div class="amount">${$totalIngresos}</div>
-        </div>
-        <div class="overview-item expense">
-          <div class="label">Gastos Totales</div>
-          <div class="amount">${$totalGastos}</div>
-        </div>
-        <div class="overview-item" class:positive={$balance >= 0} class:negative={$balance < 0}>
-          <div class="label">Balance Neto</div>
-          <div class="amount">${$balance}</div>
-        </div>
+<div>
+  <h1>📊 Dashboard</h1>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">💼 Saldo Actual</div>
+      <div class="stat-value">${saldoActual.toLocaleString()}</div>
+      <div class="stat-change">
+        ⬆️ {cambioMensual}% vs mes pasado
       </div>
     </div>
 
-      {#if $gastosPorTipo.length}
-        <div class="chart">
-          {#each $gastosPorTipo as [concepto, monto], i}
-            <div class="chart-item">
-              <span class="label">{concepto}</span>
-              <div class="bar-container">
-                <div class="bar" style="width: {$maxGasto ? (monto / $maxGasto) * 100 : 0}%"></div>
-              </div>
-              <span class="value">${monto}</span>
-            </div>
-          {/each}
-        </div>
-      {:else}
-        <p class="empty">Sin gastos registrados.</p>
-      {/if}
+    <div class="stat-card green">
+      <div class="stat-label">💰 Ingresos (Mes)</div>
+      <div class="stat-value">${totalIngresos.toLocaleString()}</div>
+      <div class="stat-change">Este mes</div>
     </div>
 
-    <div class="card">
-      <h3>🎯 Progreso de Metas ({$metas.length})</h3>
-      {#if $metasProgress.length}
-        <div class="metas">
-          {#each $metasProgress as m}
-            <div class="meta">
-              <div class="meta-header">
-                <strong>{m.nombre}</strong>
-                <span class="pct">{Math.round(m.pct)}%</span>
-              </div>
-              <ProgressBar porcentaje={m.pct} />
-              <div class="meta-footer">
-                <span class="saved">${m.ahorrado}</span>
-                <span class="target">Meta: ${m.objetivo}</span>
-              </div>
-            </div>
-          {/each}
-        </div>
-
-        <div class="meta-summary">
-          <p>Total ahorrado en metas: <strong>${$totalMetasAhorrado}</strong></p>
-          <p>Total objetivo: <strong>${$totalMetasObjetivo}</strong></p>
-          <p>Falta: <strong>${$totalMetasObjetivo - $totalMetasAhorrado}</strong></p>
-        </div>
-      {:else}
-        <p class="empty">Sin metas creadas.</p>
-      {/if}
+    <div class="stat-card red">
+      <div class="stat-label">💸 Gastos (Mes)</div>
+      <div class="stat-value">${totalGastos.toLocaleString()}</div>
+      <div class="stat-change">Este mes</div>
     </div>
-</PageWrapper>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>📈 Top Gastos por Categoría</h3>
+      <div class="chart-container">
+        <canvas id="chartGastos"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>📊 Balance Mensual</h3>
+      <div class="chart-container">
+        <canvas id="chartBalance"></canvas>
+      </div>
+    </div>
+  </div>
+</div>

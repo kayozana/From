@@ -1,114 +1,289 @@
 <script>
-// @ts-nocheck
+  // @ts-nocheck
+  import Login from './pages/Login.svelte';
+  import Dashboard from './pages/Dashboard.svelte';
+  import Movimientos from './pages/Movimientos.svelte';
+  import Metas from './metas/MetasView.svelte';
 
-  import { routes, navigate } from './router.js';
-  import { onMount, onDestroy } from 'svelte';
+  let isLoggedIn = $state(false);
+  let currentPage = $state('dashboard');
+  let sidebarOpen = $state(false);
 
-  let currentRoute = '/';
+  function navigate(page) {
+    currentPage = page;
+    sidebarOpen = false;
+  }
 
-  // Normaliza rutas (quita barras al final)
-  const normalize = (p) => (p ? p.replace(/\/+$/, '') : '/') || '/';
-
-  // Resuelve la ruta actual o vuelve a inicio si no existe
-  const resolveRoute = () => {
-    const raw = normalize(window.location.pathname);
-    return routes[raw] ? raw : '/';
-  };
-
-  const onPopState = () => {
-    currentRoute = resolveRoute();
-  };
-
-  onMount(() => {
-    window.addEventListener('popstate', onPopState);
-    currentRoute = resolveRoute();
-  });
-
-  onDestroy(() => {
-    window.removeEventListener('popstate', onPopState);
-  });
+  function handleLogin() {
+    isLoggedIn = true;
+  }
 </script>
 
 <style>
-  :root {
-    --bg: #f7f7f7;
-    --text: #222;
-    --nav-bg: #ffffff;
-    --nav-text: #222;
-    --button-bg: #4c6ef5;
-    --button-text: #fff;
-    --accent: #3b5bdb;
-    --card: #ffffff;
-    --muted: #6b7280;
-    --progress-start: #16a34a;
+  :global(*) {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
 
-  .app-container {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
+  :global(body) {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .app {
+    display: flex;
     min-height: 100vh;
   }
 
-  nav {
+  /* Sidebar */
+  .sidebar {
+    width: 250px;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    color: white;
     display: flex;
-    gap: 15px;
-    background: var(--nav-bg);
-    color: var(--nav-text);
-    padding: 15px 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.1);
   }
 
-  button {
-    padding: 8px 16px;
-    background: var(--button-bg);
+  .logo {
+    padding: 24px 20px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .nav {
+    flex: 1;
+    padding: 20px 0;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    color: #94a3b8;
+    background: transparent;
     border: none;
-    border-radius: 5px;
-    color: var(--button-text);
-    font-weight: bold;
     cursor: pointer;
-    transition: background 0.2s, transform 0.08s;
+    width: 100%;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
   }
 
-  button:hover {
-    background: color-mix(in srgb, var(--button-bg) 75%, var(--accent));
-    transform: translateY(-1px);
+  .nav-item:hover {
+    background: rgba(255,255,255,0.05);
+    color: #e2e8f0;
   }
 
-  nav button.active {
-    box-shadow: 0 2px 0 0 color-mix(in srgb, var(--accent) 60%, transparent) inset;
-    transform: translateY(-1px);
+  .nav-item.active {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border-left-color: #3b82f6;
   }
 
-  main {
+  .nav-icon {
+    font-size: 1.3rem;
+    width: 24px;
+  }
+
+  .user-section {
     padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
-  .page {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
-    color: var(--text);
-    margin-top: 20px;
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+
+  .user-info {
+    flex: 1;
+  }
+
+  .user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .user-status {
+    font-size: 0.75rem;
+    color: #10b981;
+  }
+
+  /* Main content */
+  .main-content {
+  flex: 1;
+  margin-left: 250px;
+  padding: 40px 48px; /* ← Cambiado de 32px */
+  background: #f8fafc;
+}
+
+.content-wrapper {
+  max-width: 100%; /* ← Cambiado de 1400px */
+  margin: 0 auto;
+}
+
+  /* Mobile */
+  .mobile-header {
+    display: none;
+    background: white;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+  }
+
+  .menu-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    color: #1e293b;
+  }
+
+  .mobile-logo {
+    font-size: 1.3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .overlay.show {
+      display: block;
+    }
+
+    .main-content {
+      margin-left: 0;
+      padding: 20px 16px;
+    }
+
+    .mobile-header {
+      display: flex;
+    }
   }
 </style>
 
-<div class="app-container">
-  <nav>
-    <button class:active={currentRoute === '/'} on:click={() => navigate('/')}>Inicio</button>
-    <button class:active={currentRoute === '/dashboard'} on:click={() => navigate('/dashboard')}>Dashboard</button>
-    <button class:active={currentRoute === '/nuevo-movimiento'} on:click={() => navigate('/nuevo-movimiento')}>Nuevo Movimiento</button>
-  </nav>
+{#if !isLoggedIn}
+  <Login onLogin={handleLogin} />
+{:else}
+  <div class="app">
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+      <button class="menu-btn" onclick={() => sidebarOpen = !sidebarOpen}>
+        ☰
+      </button>
+      <div class="mobile-logo">💼 EMS</div>
+      <div style="width: 40px;"></div>
+    </div>
 
-  <main>
-    {#if routes[currentRoute]}
-      <div class="page">
-        <svelte:component this={routes[currentRoute]} />
+    <!-- Overlay -->
+    <div class="overlay" class:show={sidebarOpen} onclick={() => sidebarOpen = false}></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" class:open={sidebarOpen}>
+      <div class="logo">
+        <span>💼</span>
+        <span>EMS App</span>
       </div>
-    {:else}
-      <h2>Página no encontrada</h2>
-    {/if}
-  </main>
-</div>
+
+      <nav class="nav">
+        <button
+          class="nav-item"
+          class:active={currentPage === 'dashboard'}
+          onclick={() => navigate('dashboard')}
+        >
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </button>
+
+        <button
+          class="nav-item"
+          class:active={currentPage === 'movimientos'}
+          onclick={() => navigate('movimientos')}
+        >
+          <span class="nav-icon">💰</span>
+          <span>Movimientos</span>
+        </button>
+
+        <button
+          class="nav-item"
+          class:active={currentPage === 'metas'}
+          onclick={() => navigate('metas')}
+        >
+          <span class="nav-icon">🎯</span>
+          <span>Metas</span>
+        </button>
+      </nav>
+
+      <div class="user-section">
+        <div class="user-avatar">JD</div>
+        <div class="user-info">
+          <div class="user-name">Usuario</div>
+          <div class="user-status">● En línea</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="content-wrapper">
+        {#if currentPage === 'dashboard'}
+          <Dashboard />
+        {:else if currentPage === 'movimientos'}
+          <Movimientos />
+        {:else if currentPage === 'metas'}
+          <Metas />{:else if currentPage === 'metas'}
+        {/if}
+      </div>
+    </main>
+  </div>
+{/if}
